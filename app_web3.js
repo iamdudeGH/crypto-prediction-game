@@ -196,68 +196,81 @@ async function addGenLayerNetwork() {
         return;
     }
     
+    const ethereum = window.ethereum;
+    
+    // First, try to switch to the network (it might already exist)
     try {
-        showToast('Adding GenLayer network to MetaMask...', 'info');
+        showToast('Checking for GenLayer network...', 'info');
         
-        const ethereum = window.ethereum;
-        
-        // Try to add the network
         await ethereum.request({
-            method: 'wallet_addEthereumChain',
-            params: [{
-                chainId: '0xf22f', // 61999 in hex
-                chainName: 'GenLayer Studio',
-                nativeCurrency: {
-                    name: 'GEN',
-                    symbol: 'GEN',
-                    decimals: 18
-                },
-                rpcUrls: ['https://studio.genlayer.com/api'],
-                blockExplorerUrls: []
-            }]
+            method: 'wallet_switchEthereumChain',
+            params: [{ chainId: '0xf22f' }]
         });
         
-        showToast('✅ GenLayer network added successfully!', 'success');
+        showToast('✅ Switched to GenLayer network!', 'success');
+        return; // Success! Network already exists
         
-        // Auto-switch to the network
-        setTimeout(async () => {
+    } catch (switchError) {
+        console.log('Switch error:', switchError);
+        
+        // If network doesn't exist (error 4902), try to add it
+        if (switchError.code === 4902) {
+            console.log('Network not found, trying to add...');
+            
             try {
+                showToast('Adding GenLayer network...', 'info');
+                
                 await ethereum.request({
-                    method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: '0xf22f' }]
+                    method: 'wallet_addEthereumChain',
+                    params: [{
+                        chainId: '0xf22f',
+                        chainName: 'GenLayer Studio',
+                        nativeCurrency: {
+                            name: 'GEN',
+                            symbol: 'GEN',
+                            decimals: 18
+                        },
+                        rpcUrls: ['https://studio.genlayer.com/api'],
+                        blockExplorerUrls: []
+                    }]
                 });
-                showToast('✅ Switched to GenLayer network!', 'success');
-            } catch (switchError) {
-                console.log('User declined to switch networks');
+                
+                showToast('✅ GenLayer network added and switched!', 'success');
+                return; // Success!
+                
+            } catch (addError) {
+                console.error('========================================');
+                console.error('❌ ADD NETWORK FAILED');
+                console.error('========================================');
+                console.error('Full error object:', addError);
+                console.error('Error code:', addError.code);
+                console.error('Error message:', addError.message);
+                console.error('Error data:', addError.data);
+                console.error('========================================');
+                
+                // Handle different error cases
+                if (addError.code === 4001) {
+                    showToast('❌ You cancelled the request. Try again when ready!', 'info');
+                    return;
+                }
+                
+                if (addError.code === -32602) {
+                    showToast('⚠️ Network config issue. Showing manual setup...', 'error');
+                } else {
+                    showToast(`❌ Could not add automatically (Error ${addError.code}). Showing manual setup...`, 'error');
+                }
+                
+                // Show help modal after a moment
+                setTimeout(() => {
+                    document.getElementById('networkHelpModal').classList.remove('hidden');
+                }, 2000);
             }
-        }, 500);
-        
-    } catch (error) {
-        console.error('Error adding network:', error);
-        
-        // Better error messages
-        if (error.code === 4902) {
-            showToast('Network already exists. Trying to switch...', 'info');
-            try {
-                await window.ethereum.request({
-                    method: 'wallet_switchEthereumChain',
-                    params: [{ chainId: '0xf22f' }]
-                });
-                showToast('✅ Switched to GenLayer network!', 'success');
-            } catch (switchError) {
-                showToast('Please manually switch to GenLayer network in MetaMask', 'error');
-            }
-        } else if (error.code === 4001) {
-            showToast('You declined the request. Click the button again when ready!', 'info');
-        } else if (error.code === -32602) {
-            showToast('Network already exists with same RPC. Please switch to Chain ID 61999 in MetaMask.', 'error');
-            // Show help modal
-            setTimeout(() => {
-                document.getElementById('networkHelpModal').classList.remove('hidden');
-            }, 2000);
+        } else if (switchError.code === 4001) {
+            showToast('❌ You cancelled the request. Try again when ready!', 'info');
         } else {
-            showToast('Click here for manual setup instructions', 'error');
-            // Show help modal
+            // Unknown error
+            console.error('Unknown switch error:', switchError);
+            showToast('⚠️ Unexpected error. Showing manual setup...', 'error');
             setTimeout(() => {
                 document.getElementById('networkHelpModal').classList.remove('hidden');
             }, 2000);
