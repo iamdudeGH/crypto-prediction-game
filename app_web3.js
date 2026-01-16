@@ -66,10 +66,14 @@ document.addEventListener('DOMContentLoaded', async () => {
 
 // Load configuration
 function loadConfig() {
-    const saved = localStorage.getItem('contractAddress');
-    if (saved) {
-        state.contractAddress = saved;
-        document.getElementById('contractAddress').value = saved;
+    // Use hardcoded contract address
+    state.contractAddress = CONTRACT_ADDRESS;
+    document.getElementById('contractAddress').value = CONTRACT_ADDRESS;
+    
+    // Hide contract address section (users don't need to see it)
+    const contractRow = document.querySelector('.config-row');
+    if (contractRow) {
+        contractRow.style.display = 'none';
     }
 }
 
@@ -97,6 +101,9 @@ function setupEventListeners() {
     
     // Connect wallet button
     document.getElementById('saveAddress').addEventListener('click', connectWallet);
+    
+    // Add GenLayer network button
+    document.getElementById('addNetworkBtn').addEventListener('click', addGenLayerNetwork);
     
     // Crypto selection
     document.getElementById('cryptoSelect').addEventListener('change', (e) => {
@@ -179,6 +186,18 @@ async function tryAutoConnect() {
         }
     } catch (error) {
         console.error('Auto-connect failed:', error);
+    }
+}
+
+// Add GenLayer network to MetaMask
+async function addGenLayerNetwork() {
+    try {
+        showToast('Adding GenLayer network...', 'info');
+        await switchToGenLayerNetwork();
+        showToast('✅ GenLayer network added successfully!', 'success');
+    } catch (error) {
+        console.error('Error adding network:', error);
+        showToast('Failed to add network. Please add manually: Chain ID 61999', 'error');
     }
 }
 
