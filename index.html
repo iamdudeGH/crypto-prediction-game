@@ -1,0 +1,169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Crypto Prediction Game - Web3 dApp</title>
+    <link rel="stylesheet" href="style_enhanced.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Connection Banner -->
+        <div id="connectionBanner" class="connection-banner hidden">
+            <div class="banner-content">
+                <span id="bannerMessage">Configure your contract address below</span>
+                <button id="dismissBanner" class="banner-close">×</button>
+            </div>
+        </div>
+
+        <!-- Header -->
+        <header>
+            <h1>🎯 Crypto Prediction Game</h1>
+            <p class="subtitle">Real Web3 dApp - Powered by GenLayer Blockchain</p>
+            
+            <!-- Contract Configuration -->
+            <div class="contract-config">
+                <div class="config-row">
+                    <label for="contractAddress">Contract Address:</label>
+                    <input type="text" id="contractAddress" placeholder="0x..." value="">
+                    <button id="saveContract" class="save-btn">Save</button>
+                </div>
+                <div class="config-row">
+                    <label for="userAddress">Wallet Address:</label>
+                    <input type="text" id="userAddress" placeholder="Connected via MetaMask" disabled>
+                    <button id="saveAddress" class="save-btn">Connect MetaMask</button>
+                </div>
+                <div class="connection-status">
+                    <span id="contractStatus" class="status-badge status-disconnected">Not Connected</span>
+                    <span class="balance">Balance: <strong id="userBalance">0</strong> tokens</span>
+                </div>
+            </div>
+        </header>
+
+        <!-- Main Game Area -->
+        <main>
+            <!-- Crypto Selection -->
+            <section class="crypto-selector">
+                <label for="cryptoSelect">Select Cryptocurrency:</label>
+                <select id="cryptoSelect">
+                    <option value="BTC">Bitcoin (BTC)</option>
+                    <option value="ETH">Ethereum (ETH)</option>
+                    <option value="SOL">Solana (SOL)</option>
+                    <option value="DOGE">Dogecoin (DOGE)</option>
+                    <option value="ADA">Cardano (ADA)</option>
+                </select>
+            </section>
+
+            <!-- Current Price Display -->
+            <section class="price-display">
+                <div class="price-card">
+                    <h2 id="cryptoSymbol">BTC</h2>
+                    <div class="price" id="currentPrice">Connect wallet to view prices</div>
+                    <div class="price-info">
+                        <span class="last-update" id="lastUpdate">-</span>
+                    </div>
+                    <button class="refresh-btn" id="refreshPrice">🔄 Refresh Price</button>
+                </div>
+            </section>
+
+            <!-- Betting Interface -->
+            <section class="betting-area">
+                <h3>Place Your Prediction</h3>
+                
+                <div class="bet-input">
+                    <label for="betAmount">Bet Amount:</label>
+                    <input type="number" id="betAmount" min="10" value="100" placeholder="Enter amount">
+                </div>
+
+                <div class="bet-input">
+                    <label for="duration">Duration:</label>
+                    <select id="duration">
+                        <option value="30">30 seconds</option>
+                        <option value="60" selected>60 seconds</option>
+                        <option value="120">2 minutes</option>
+                        <option value="300">5 minutes</option>
+                    </select>
+                </div>
+
+                <div class="bet-buttons">
+                    <button class="bet-btn up-btn" id="betUp">
+                        ⬆️ UP
+                        <span>Win 1.8x if price goes up</span>
+                    </button>
+                    <button class="bet-btn down-btn" id="betDown">
+                        ⬇️ DOWN
+                        <span>Win 1.8x if price goes down</span>
+                    </button>
+                </div>
+            </section>
+
+            <!-- Active Predictions -->
+            <section class="predictions-section">
+                <div class="section-header">
+                    <h3>Your Active Predictions</h3>
+                    <button id="refreshPredictions" class="refresh-small-btn">🔄 Refresh</button>
+                </div>
+                <div id="activePredictions" class="predictions-list">
+                    <p class="empty-state">Connect wallet and place a bet to start!</p>
+                </div>
+            </section>
+
+            <!-- Stats Section -->
+            <section class="stats-section">
+                <h3>📊 Your Statistics</h3>
+                <div class="stats-grid">
+                    <div class="stat-card">
+                        <div class="stat-label">Total Predictions</div>
+                        <div class="stat-value" id="statTotal">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Wins</div>
+                        <div class="stat-value stat-win" id="statWins">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Losses</div>
+                        <div class="stat-value stat-loss" id="statLosses">0</div>
+                    </div>
+                    <div class="stat-card">
+                        <div class="stat-label">Win Rate</div>
+                        <div class="stat-value" id="statWinRate">0%</div>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Leaderboard -->
+            <section class="leaderboard-section">
+                <div class="section-header">
+                    <h3>🏆 Leaderboard</h3>
+                    <button id="refreshLeaderboard" class="refresh-small-btn">🔄 Refresh</button>
+                </div>
+                <div id="leaderboard" class="leaderboard-list">
+                    <p class="empty-state">No winners yet. Be the first!</p>
+                </div>
+            </section>
+
+            <!-- Deposit Section -->
+            <section class="deposit-section">
+                <h3>💰 Manage Balance</h3>
+                <div class="deposit-form">
+                    <input type="number" id="depositAmount" min="100" value="1000" placeholder="Amount to deposit">
+                    <button class="deposit-btn" id="depositBtn">Deposit Tokens</button>
+                </div>
+            </section>
+        </main>
+
+        <!-- Footer -->
+        <footer>
+            <p>Powered by <strong>GenLayer</strong> - The Intelligent Blockchain</p>
+            <p class="web3-badge">🔗 Web3 Connected via genlayer-js SDK</p>
+            <p class="disclaimer">⚠️ Demo purposes only. Not financial advice.</p>
+        </footer>
+    </div>
+
+    <!-- Toast Notifications -->
+    <div id="toast" class="toast"></div>
+
+    <!-- Load JavaScript as Module -->
+    <script type="module" src="app_web3.js"></script>
+</body>
+</html>

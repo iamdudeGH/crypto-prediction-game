@@ -1,3 +1,4 @@
+# v0.1.0
 # { "Depends": "py-genlayer:test" }
 
 from genlayer import *
@@ -29,7 +30,7 @@ class Hello(gl.Contract):
         return self.name
     
     @gl.public.write
-    def set_name(self, name: str):
+    def set_name(self, name: str) -> None:
         """
         Change the name stored in the contract.
         This modifies state, so it requires a transaction.
