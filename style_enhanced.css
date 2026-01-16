@@ -695,6 +695,71 @@ section h3::after {
     color: #ff6a00;
 }
 
+/* Modal Styles */
+.modal {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background: rgba(0, 0, 0, 0.7);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 10000;
+}
+
+.modal.hidden {
+    display: none;
+}
+
+.modal-content {
+    background: white;
+    border-radius: 12px;
+    padding: 30px;
+    max-width: 500px;
+    margin: 20px;
+    box-shadow: 0 10px 40px rgba(0, 0, 0, 0.3);
+}
+
+.modal-content h3 {
+    margin: 0 0 15px 0;
+    color: #667eea;
+}
+
+.network-info {
+    background: #f0f4ff;
+    padding: 15px;
+    border-radius: 8px;
+    margin: 15px 0;
+}
+
+.network-info p {
+    margin: 8px 0;
+    font-family: monospace;
+}
+
+.help-note {
+    font-size: 14px;
+    color: #666;
+    margin: 15px 0;
+}
+
+.modal-close-btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 12px 24px;
+    border-radius: 8px;
+    cursor: pointer;
+    font-weight: 600;
+    width: 100%;
+}
+
+.modal-close-btn:hover {
+    background: #5568d3;
+}
+
 /* Toast Notifications */
 .toast {
     position: fixed;

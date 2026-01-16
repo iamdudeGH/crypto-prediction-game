@@ -191,13 +191,77 @@ async function tryAutoConnect() {
 
 // Add GenLayer network to MetaMask
 async function addGenLayerNetwork() {
+    if (!isMetaMaskInstalled()) {
+        showToast('Please install MetaMask first!', 'error');
+        return;
+    }
+    
     try {
-        showToast('Adding GenLayer network...', 'info');
-        await switchToGenLayerNetwork();
+        showToast('Adding GenLayer network to MetaMask...', 'info');
+        
+        const ethereum = window.ethereum;
+        
+        // Try to add the network
+        await ethereum.request({
+            method: 'wallet_addEthereumChain',
+            params: [{
+                chainId: '0xf22f', // 61999 in hex
+                chainName: 'GenLayer Studio',
+                nativeCurrency: {
+                    name: 'GEN',
+                    symbol: 'GEN',
+                    decimals: 18
+                },
+                rpcUrls: ['https://studio.genlayer.com/api'],
+                blockExplorerUrls: []
+            }]
+        });
+        
         showToast('✅ GenLayer network added successfully!', 'success');
+        
+        // Auto-switch to the network
+        setTimeout(async () => {
+            try {
+                await ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: '0xf22f' }]
+                });
+                showToast('✅ Switched to GenLayer network!', 'success');
+            } catch (switchError) {
+                console.log('User declined to switch networks');
+            }
+        }, 500);
+        
     } catch (error) {
         console.error('Error adding network:', error);
-        showToast('Failed to add network. Please add manually: Chain ID 61999', 'error');
+        
+        // Better error messages
+        if (error.code === 4902) {
+            showToast('Network already exists. Trying to switch...', 'info');
+            try {
+                await window.ethereum.request({
+                    method: 'wallet_switchEthereumChain',
+                    params: [{ chainId: '0xf22f' }]
+                });
+                showToast('✅ Switched to GenLayer network!', 'success');
+            } catch (switchError) {
+                showToast('Please manually switch to GenLayer network in MetaMask', 'error');
+            }
+        } else if (error.code === 4001) {
+            showToast('You declined the request. Click the button again when ready!', 'info');
+        } else if (error.code === -32602) {
+            showToast('Network already exists with same RPC. Please switch to Chain ID 61999 in MetaMask.', 'error');
+            // Show help modal
+            setTimeout(() => {
+                document.getElementById('networkHelpModal').classList.remove('hidden');
+            }, 2000);
+        } else {
+            showToast('Click here for manual setup instructions', 'error');
+            // Show help modal
+            setTimeout(() => {
+                document.getElementById('networkHelpModal').classList.remove('hidden');
+            }, 2000);
+        }
     }
 }
 

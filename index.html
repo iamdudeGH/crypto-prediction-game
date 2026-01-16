@@ -166,6 +166,22 @@
     <!-- Toast Notifications -->
     <div id="toast" class="toast"></div>
 
+    <!-- Network Setup Help Modal -->
+    <div id="networkHelpModal" class="modal hidden">
+        <div class="modal-content">
+            <h3>🔧 Manual Network Setup</h3>
+            <p>If automatic setup didn't work, add GenLayer manually in MetaMask:</p>
+            <div class="network-info">
+                <p><strong>Network Name:</strong> GenLayer Studio</p>
+                <p><strong>RPC URL:</strong> https://studio.genlayer.com/api</p>
+                <p><strong>Chain ID:</strong> 61999 (or 0xf22f)</p>
+                <p><strong>Currency Symbol:</strong> GEN</p>
+            </div>
+            <p class="help-note">💡 Click the MetaMask icon → Networks → Add Network → Fill in the details above</p>
+            <button onclick="document.getElementById('networkHelpModal').classList.add('hidden')" class="modal-close-btn">Got it!</button>
+        </div>
+    </div>
+
     <!-- Load JavaScript as Module -->
     <script type="module" src="app_web3.js"></script>
 </body>
