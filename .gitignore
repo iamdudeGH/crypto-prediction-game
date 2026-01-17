@@ -32,6 +32,9 @@ tmp_*
 *.tmp
 tmp_rovodev_*
 
+# Local memory files (project context, don't commit)
+AGENTS.local.md
+
 # OS
 .DS_Store
 Thumbs.db

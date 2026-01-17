@@ -12,7 +12,7 @@ import {
 } from './lib/genlayer/client.js';
 import CryptoPredictionGame from './lib/contracts/CryptoPredictionGame.js';
 
-// State
+// State with caching
 let state = {
     wallet: {
         address: null,
@@ -28,6 +28,17 @@ let state = {
     activePredictionIds: [],
     updateTimer: null,
     lastPredictionId: -1, // Track last known prediction ID
+    // Performance optimizations
+    cache: {
+        prices: {}, // Cache prices by symbol
+        priceTimestamps: {} // Track when prices were last fetched
+    },
+    isUpdating: {
+        predictions: false,
+        balance: false,
+        stats: false,
+        leaderboard: false
+    }
 };
 
 // Initialize on page load
@@ -403,6 +414,9 @@ async function updateAllData() {
 // Refresh balance
 async function refreshBalance() {
     if (!state.contract || !state.wallet.address) return;
+    if (state.isUpdating.balance) return;
+    
+    state.isUpdating.balance = true;
     
     try {
         const balance = await state.contract.getBalance(state.wallet.address);
@@ -414,6 +428,8 @@ async function refreshBalance() {
         document.getElementById('userBalance').textContent = balanceNum;
     } catch (error) {
         console.error('Error fetching balance:', error);
+    } finally {
+        state.isUpdating.balance = false;
     }
 }
 
@@ -667,6 +683,13 @@ function triggerConfetti() {
 async function refreshPredictions() {
     if (!state.contract || !state.wallet.address) return;
     
+    // Prevent concurrent updates
+    if (state.isUpdating.predictions) {
+        return;
+    }
+    
+    state.isUpdating.predictions = true;
+    
     try {
         const summary = await state.contract.getUserPredictions(state.wallet.address);
         const activePredictions = await state.contract.getUserActivePredictions(state.wallet.address);
@@ -873,12 +896,17 @@ async function refreshPredictions() {
                 </button>
             </div>
         `;
+    } finally {
+        state.isUpdating.predictions = false;
     }
 }
 
 // Refresh stats
 async function refreshStats() {
     if (!state.contract || !state.wallet.address) return;
+    if (state.isUpdating.stats) return;
+    
+    state.isUpdating.stats = true;
     
     try {
         const summary = await state.contract.getUserPredictions(state.wallet.address);
@@ -900,12 +928,17 @@ async function refreshStats() {
         document.getElementById('statWinRate').textContent = winRate + '%';
     } catch (error) {
         console.error('Error fetching stats:', error);
+    } finally {
+        state.isUpdating.stats = false;
     }
 }
 
 // Refresh leaderboard
 async function refreshLeaderboard() {
     if (!state.contract) return;
+    if (state.isUpdating.leaderboard) return;
+    
+    state.isUpdating.leaderboard = true;
     
     try {
         const leaderboardText = await state.contract.getLeaderboard();
@@ -930,6 +963,8 @@ async function refreshLeaderboard() {
         }
     } catch (error) {
         console.error('Error fetching leaderboard:', error);
+    } finally {
+        state.isUpdating.leaderboard = false;
     }
 }
 
@@ -968,11 +1003,34 @@ function startAutoRefresh() {
         clearInterval(state.updateTimer);
     }
     
+    // Smart update timer - only update prices frequently, other data less often
+    let updateCounter = 0;
     state.updateTimer = setInterval(async () => {
         if (state.wallet.isConnected && state.contract) {
-            await updateAllData();
+            updateCounter++;
+            
+            // Update prices every 15 seconds (faster for live feel)
+            if (updateCounter % 1 === 0) {
+                await refreshPrice();
+            }
+            
+            // Update predictions every 30 seconds (2 intervals)
+            if (updateCounter % 2 === 0) {
+                await refreshPredictions();
+            }
+            
+            // Update balance and stats every 60 seconds (4 intervals)
+            if (updateCounter % 4 === 0) {
+                await refreshBalance();
+                await refreshStats();
+            }
+            
+            // Update leaderboard every 2 minutes (8 intervals)
+            if (updateCounter % 8 === 0) {
+                await refreshLeaderboard();
+            }
         }
-    }, 10000); // Every 10 seconds
+    }, 15000); // Every 15 seconds base interval
 }
 
 // Update connection status
